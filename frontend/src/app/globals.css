@@ -60,7 +60,7 @@ body {
 
 /* Prevent scroll jumping on interactions */
 html {
-  scroll-behavior: auto;
+  scroll-behavior: smooth;
   overflow-y: scroll;
 }
 
@@ -93,9 +93,25 @@ main {
   will-change: auto;
 }
 
-/* Prevent scroll restoration jumping */
-@media (prefers-reduced-motion: no-preference) {
-  * {
-    scroll-behavior: auto !important;
+/* Enhanced smooth scrolling */
+html {
+  scroll-padding-top: 2rem;
+}
+
+/* Smooth transitions for dynamic content */
+.card, .card-scarlet {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
