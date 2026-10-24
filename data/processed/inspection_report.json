@@ -1,0 +1,195 @@
+{
+  "relationships": {
+    "premise_join": {
+      "customers_total": 117642,
+      "customers_with_premise": 117642,
+      "matched_upstream_rows": 117599,
+      "customers_joined_to_topology": 117595,
+      "customer_join_rate_pct": 99.96,
+      "customers_missing_topology": 47
+    },
+    "customer_transformer_key": {
+      "field_customer": "aep_xfmr_l",
+      "field_topology": "eo_power_xfrmr_inst location id",
+      "agree": 110950,
+      "disagree": 6645,
+      "agreement_rate_pct": 94.35
+    },
+    "equipment_identifiers": {
+      "join_field": "location_n (device) == location id (matched_upstream)",
+      "mu_transformer_locs": 22836,
+      "mu_transformer_in_layer_pct": 99.52,
+      "mu_isolating_locs": 6813,
+      "mu_isolating_in_any_layer_pct": 99.24,
+      "device_counts": {
+        "transformer": 26950,
+        "switch": 885,
+        "recloser": 330,
+        "fuse": 6698
+      }
+    },
+    "upstream_ordering": {
+      "note": "iso_chain is ordered nearest->source (transformer, then isolating devices, then circuit breaker)",
+      "isolating_devices_per_premise_min": 0,
+      "isolating_devices_per_premise_max": 10,
+      "isolating_devices_per_premise_mean": 2.11,
+      "isolating_devices_per_premise_median": 2,
+      "premises_with_zero_isolating_devices": 6994
+    },
+    "damage_to_circuit": {
+      "join_field": "damage.Circuit == network.aep_circui (anonymized circuit name)",
+      "damage_rows": 1659,
+      "distinct_damage_circuits": 85,
+      "damage_circuits_matched_to_network": 83,
+      "match_rate_pct": 97.65,
+      "unmatched_circuit_labels": [
+        "SERVICE CENTER",
+        "TINKER"
+      ],
+      "asset_type_counts": {
+        "primary": 704,
+        "Pole": 355,
+        "Fuse Bank": 280,
+        "secondary": 156,
+        "Transformer": 74,
+        "Recloser Bank": 58,
+        "Switch": 19,
+        "Capacitor Bank": 6,
+        "Light": 5,
+        "Step Transformer": 1
+      },
+      "access_issue_counts": {
+        "No": 1123,
+        "Yes": 535
+      },
+      "repaired_counts": {
+        "No": 76,
+        "Yes": 1583
+      },
+      "numeric_circuit_id_to_name": {
+        "ids": 121,
+        "ids_mapping_to_single_name": 107
+      },
+      "evidence_nature": "HISTORICAL damage assessment (file arcos_prod_damage_09_28) \u2014 NOT a live/confirmed current outage."
+    },
+    "customer_service_kind": {
+      "Underground": 52419,
+      "Overhead": 64824,
+      "Unknown": 399
+    }
+  },
+  "labor": {
+    "sheets": [
+      "CNC",
+      "Labor time material related",
+      "Labor only work",
+      "Indirect Labor Multiplier",
+      "CU Group descriptions"
+    ],
+    "units": {
+      "INSTALL_HOURS": "direct crew-hours to install one construction unit (CU)",
+      "REMOVE_HOURS": "direct crew-hours to remove one CU",
+      "effective_hours": "direct_hours * ILM  (ILM already includes travel/setup/safety)"
+    },
+    "tables": {
+      "pole_install_remove_hours_by_size": {
+        "Small": {
+          "height_range": "25\u201335 ft",
+          "install_hours": 1.9416103896103902,
+          "remove_hours": 0.763636363636363
+        },
+        "Medium": {
+          "height_range": "40\u201355 ft",
+          "install_hours": 2.50295207667732,
+          "remove_hours": 0.9274888178913726
+        },
+        "Large": {
+          "height_range": "60 ft and above",
+          "install_hours": 3.368367816091952,
+          "remove_hours": 1.153195402298852
+        }
+      },
+      "transformer_install_remove_hours_by_kVA": {
+        "10": {
+          "cu_count": 35,
+          "install_hours": 1.189485714285714,
+          "remove_hours": 0.8082285714285719
+        },
+        "15": {
+          "cu_count": 32,
+          "install_hours": 1.184,
+          "remove_hours": 0.8000000000000004
+        },
+        "25": {
+          "cu_count": 47,
+          "install_hours": 1.1880851063829778,
+          "remove_hours": 0.8061276595744681
+        },
+        "37": {
+          "cu_count": 30,
+          "install_hours": 1.2384,
+          "remove_hours": 0.8816000000000005
+        },
+        "50": {
+          "cu_count": 47,
+          "install_hours": 1.2445957446808502,
+          "remove_hours": 0.890893617021277
+        },
+        "75": {
+          "cu_count": 41,
+          "install_hours": 1.2776585365853663,
+          "remove_hours": 0.9369756097560975
+        },
+        "100": {
+          "cu_count": 42,
+          "install_hours": 1.2800000000000007,
+          "remove_hours": 0.944
+        },
+        "167": {
+          "cu_count": 39,
+          "install_hours": 1.2800000000000007,
+          "remove_hours": 0.9439999999999997
+        },
+        "250": {
+          "cu_count": 13,
+          "install_hours": 1.3304615384615381,
+          "remove_hours": 0.9624615384615383
+        },
+        "333": {
+          "cu_count": 9,
+          "install_hours": 1.3546666666666665,
+          "remove_hours": 0.9759999999999999
+        },
+        "500": {
+          "cu_count": 9,
+          "install_hours": 1.3795555555555552,
+          "remove_hours": 0.9866666666666666
+        },
+        "833": {
+          "cu_count": 4,
+          "install_hours": 1.364,
+          "remove_hours": 0.98
+        }
+      }
+    },
+    "caveats": [
+      "Apply the ILM once to summed DIRECT hours. Do NOT separately add travel/setup/safety \u2014 the ILM already accounts for them (avoids double counting).",
+      "'Labor only work' adders are DIRECT-hour adders (e.g. Restricted Access 0.5 h) and are added to direct hours BEFORE applying the ILM.",
+      "Values are averages across construction units; individual jobs vary. Treat as planning estimates.",
+      "Excavation adders are per cubic foot and require a volume not present in the storm data."
+    ],
+    "indirect_labor_multiplier": {
+      "value": 4.5,
+      "covers": "drive time, safety discussion time, set up time (per workbook note)",
+      "note": "The ILM should be mutiplied time any labor hours to take into account drive time, safety discussion time, set up time, etc."
+    }
+  },
+  "unresolved": [
+    "6645 premises have a customer aep_xfmr_l that disagrees with the matched_upstream transformer location id \u2014 need rule for which is authoritative.",
+    "47 customers have a premise not present in matched_upstream \u2014 are these unmapped, or served by excluded assets?",
+    "Damage circuits not matched to network: ['SERVICE CENTER', 'TINKER'] (look like facility names, not distribution circuits) \u2014 confirm they are out of scope.",
+    "6994 premises have zero isolating devices between transformer and circuit breaker \u2014 confirm this is valid (direct-from-breaker) rather than missing data.",
+    "Damage Asset_Type values (primary/secondary/Pole/Fuse Bank/Transformer/Recloser Bank) are not keyed to a specific asset id in the damage table itself; spatial NEAR_FID links to a feature id whose layer is not labeled. Confirm the intended damage->specific-asset join.",
+    "Labor 'per cubic foot' excavation adders (Manual Excavation 1.5, Difficult Excavation 4.0) have no volume provided in storm context \u2014 treated as unknown unless a volume is supplied."
+  ]
+}

@@ -39,6 +39,14 @@ AVAILABLE_CREWS_MAX: int = 10
 #   False = standard access
 ACCESS_BLOCKED_OPTIONS: list[bool] = [False, True]
 
+# damage_scenario (Optional[str]) — OPTIONAL, added in Pass 2.
+#   Selects one of the SIMULATED damage-scenario presets for the chosen premise,
+#   as returned by get_damage_scenarios(customer_id). When None (the default),
+#   the backend applies a sensible default preset, so existing callers that omit
+#   this argument keep working unchanged.
+#   The synthetic demo backend accepts the argument for signature compatibility
+#   but does not use preset-driven damage.
+
 # ---------------------------------------------------------------------------
 # Outputs
 # ---------------------------------------------------------------------------
