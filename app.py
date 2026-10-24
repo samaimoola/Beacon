@@ -30,23 +30,80 @@ from ui.components import (
     assumptions_expander,
     format_window,
     compute_input_changes,
+    _metric_html,
+)
+from ui.theme import (
+    CARLET, GREY_DARK, GREY_MEDIUM, GREY_LIGHT, GREY_BORDER, AMBER,
+    SUCCESS, WARNING, ERROR, INFO,
+    TYPOGRAPHY, SPACING, BORDER_RADIUS,
+    RISK_COLOR, EVIDENCE_COLOR,
+    apply_card_styles,
 )
 from ui.concierge_panel import render_concierge
 
 
 def _header() -> None:
-    st.title("⛈️ StormReady")
-    st.caption("AEP AI Outage Concierge — HackOHI/O 2026 prototype")
+    """Render the main header with improved styling."""
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        st.markdown(f"""
+        <div style="
+            background-color: {CARLET};
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: {BORDER_RADIUS['md']};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: {SPACING['sm']};
+        ">
+            ⛈️
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <h1 style="
+            color: {GREY_DARK};
+            margin-bottom: 0;
+            font-size: {TYPOGRAPHY['h1']};
+        ">
+            StormReady
+        </h1>
+        <div style="
+            color: {GREY_MEDIUM};
+            font-size: {TYPOGRAPHY['small']};
+            margin-top: {SPACING['xs']};
+        ">
+            AEP AI Outage Concierge — HackOHI/O 2026 prototype
+        </div>
+        """, unsafe_allow_html=True)
 
 
 def _top_metrics(result: dict) -> None:
     """Compact at-a-glance strip above the detailed cards."""
     low = result.get("restoration_low_hours")
     high = result.get("restoration_high_hours")
+    
     c1, c2, c3 = st.columns(3)
-    c1.metric("Outage risk", result["risk_band"])
-    c2.metric("Restoration window", format_window(low, high))
-    c3.metric("Evidence quality", result["evidence_quality"])
+    
+    with c1:
+        risk_color = RISK_COLOR.get(result["risk_band"], GREY_DARK)
+        st.markdown(_metric_html(result["risk_band"], "Outage risk", risk_color), unsafe_allow_html=True)
+    
+    with c2:
+        window_text = format_window(low, high)
+        window_color = INFO
+        if low is None or high is None:
+            window_color = WARNING
+        elif low == 0 and high == 0:
+            window_color = SUCCESS
+        st.markdown(_metric_html(window_text, "Restoration window", window_color), unsafe_allow_html=True)
+    
+    with c3:
+        eq_color = EVIDENCE_COLOR.get(result["evidence_quality"], GREY_MEDIUM)
+        st.markdown(_metric_html(result["evidence_quality"], "Evidence quality", eq_color), unsafe_allow_html=True)
 
 
 def main() -> None:
@@ -55,6 +112,9 @@ def main() -> None:
         page_icon="⛈️",
         layout="wide",
     )
+    
+    # Apply global theme styles
+    apply_card_styles()
 
     _header()
 
