@@ -26,12 +26,12 @@ from ui.components import (
     alert_badge,
     what_changed_panel,
     preparation_checklist,
-    notification_preview,
     assumptions_expander,
     format_window,
     compute_input_changes,
     _metric_html,
 )
+from ui.notification_panel import render_notification_panel
 from ui.theme import (
     CARLET, GREY_DARK, GREY_MEDIUM, GREY_LIGHT, GREY_BORDER, AMBER,
     SUCCESS, WARNING, ERROR, INFO,
@@ -209,7 +209,12 @@ def main() -> None:
         preparation_checklist(result, customer_id)
 
     with tab_notify:
-        notification_preview(result, storm_severity)
+        render_notification_panel(
+            inputs=curr_inputs,
+            result=result,
+            storm_severity=storm_severity,
+            prev_result=prev_result,
+        )
 
     with tab_ask:
         render_concierge(

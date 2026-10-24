@@ -58,6 +58,17 @@ def _reset_callback() -> None:
     # Clear the concierge chat history too (preserves existing reset behavior).
     from ui.concierge_panel import clear_history as _clear_chat
     _clear_chat()
+    
+    # Clear notification preferences
+    notification_keys = [
+        "notification_lifecycle_state",
+        "notification_opted_in",
+        "notification_channels",
+        "notification_preferred_channel",
+    ]
+    for key in notification_keys:
+        if key in st.session_state:
+            del st.session_state[key]
 
 
 def render_sidebar() -> tuple[str, str, int, bool, str | None]:
