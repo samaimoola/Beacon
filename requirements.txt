@@ -1,6 +1,12 @@
 # StormReady dependencies. Pinned for reproducibility.
 
+# Streamlit UI (legacy - being replaced by React)
 streamlit==1.39.0
+
+# FastAPI backend for React UI
+fastapi>=0.109.0,<1.0
+uvicorn[standard]>=0.27.0,<1.0
+pydantic>=2.5.0,<3.0
 
 # Live AI concierge via Amazon Bedrock (Converse API). Credentials/region/model
 # are configured EXTERNALLY (never in code). The app runs without AWS access,

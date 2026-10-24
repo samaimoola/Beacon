@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ohio-scarlet: #BB0000;
+  --ohio-grey: #666666;
+  --ohio-light: #F5F5F5;
+  --ohio-dark: #2C2C2C;
+  --white: #FFFFFF;
+}
+
+body {
+  background-color: var(--ohio-light);
+  color: var(--ohio-dark);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+  }
+
+  .card-scarlet {
+    @apply bg-white rounded-lg shadow-md p-6 border-2 border-ohio-scarlet;
+  }
+
+  .btn-primary {
+    @apply bg-ohio-scarlet text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-ohio-grey text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors;
+  }
+
+  .input-field {
+    @apply border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ohio-scarlet;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .badge-scarlet {
+    @apply badge bg-red-100 text-ohio-scarlet;
+  }
+
+  .badge-grey {
+    @apply badge bg-gray-100 text-ohio-grey;
+  }
+
+  .badge-success {
+    @apply badge bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ohio-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ohio-grey);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ohio-scarlet);
+}

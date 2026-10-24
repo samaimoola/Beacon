@@ -12,7 +12,55 @@ and a notification preview — with controls judges can change to see results up
 > as *context*, never as proof of current damage. A clearly-labeled synthetic demo
 > backend is also available as a fallback. See `AGENTS.md` for full scope.
 
-## Setup & run (exact commands)
+## 🆕 New React UI (Recommended)
+
+StormReady now has a **modern React frontend** with Ohio State branding, CometDial controls, and improved performance.
+
+### Quick Start (Both Backend + Frontend)
+
+**Windows:**
+```powershell
+.\start-react-demo.ps1
+```
+
+**macOS/Linux:**
+```bash
+chmod +x start-react-demo.sh
+./start-react-demo.sh
+```
+
+### Manual Start
+
+**1. Start Python Backend:**
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run API server
+python api_server.py
+```
+
+**2. Start React Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Then open **http://localhost:3000** in your browser.
+
+### Features
+- ✨ **CometDial Controls**: Beautiful circular sliders for crew availability
+- 🎨 **Ohio State Colors**: Scarlet (#BB0000), Grey, White theme
+- 🚀 **Better Performance**: Faster rendering and interactions
+- 📱 **Responsive**: Works great on mobile and tablet
+- ♿ **Accessible**: Keyboard navigation and ARIA labels
+
+See **[REACT_MIGRATION.md](REACT_MIGRATION.md)** for complete migration guide.
+
+## Legacy Streamlit UI (Backup)
+
+The original Streamlit UI is preserved as a backup:
 
 From the repository root (`StormReady/`):
 
