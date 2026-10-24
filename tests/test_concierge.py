@@ -240,6 +240,77 @@ def test_counterfactual_critical_path_message_when_no_help():
     assert "does not change" in reply.text.lower() or "critical path" in reply.text.lower()
 
 
+# --------------------------------------------------------------------------
+# Grounding of special estimate states (no-damage, unknown) — MOCKED.
+# These guard the live-validation fixes without any network call.
+# --------------------------------------------------------------------------
+
+def test_context_flags_no_damage_with_required_caveat():
+    cid = get_customers()[0]["id"]
+    label = get_customers()[0]["label"]
+    inputs = {"customer_label": label, "storm_severity": "medium",
+              "available_crews": 3, "access_blocked": False, "damage_scenario": "none"}
+    result = evaluate_scenario(cid, "medium", 3, False, damage_scenario="none")
+    ctx = C.build_context(customer_label=label, inputs=inputs, result=result,
+                          backend_name="real", damage_scenarios=get_damage_scenarios(cid))
+    notes = ctx["estimate_notes"]
+    assert notes["no_damage_modeled"] is True
+    assert notes["estimate_unknown"] is False
+    caveat = " ".join(notes["required_caveats"]).lower()
+    assert "not guarantee" in caveat and "uninterrupted power" in caveat
+
+
+def test_context_flags_unknown_estimate():
+    cid = get_customers()[0]["id"]
+    label = get_customers()[0]["label"]
+    inputs = {"customer_label": label, "storm_severity": "medium",
+              "available_crews": 3, "access_blocked": False, "damage_scenario": "unmapped_asset"}
+    result = evaluate_scenario(cid, "medium", 3, False, damage_scenario="unmapped_asset")
+    ctx = C.build_context(customer_label=label, inputs=inputs, result=result,
+                          backend_name="real", damage_scenarios=get_damage_scenarios(cid))
+    notes = ctx["estimate_notes"]
+    assert notes["estimate_unknown"] is True
+    assert notes["no_damage_modeled"] is False
+    caveat = " ".join(notes["required_caveats"]).lower()
+    assert "unknown" in caveat and "not invent" in caveat
+
+
+def test_fallback_no_damage_does_not_promise_power():
+    """Rule-based fallback must also carry the no-guarantee caveat for 0–0 windows."""
+    cid = get_customers()[0]["id"]
+    label = get_customers()[0]["label"]
+    inputs = {"customer_label": label, "storm_severity": "medium",
+              "available_crews": 3, "access_blocked": False, "damage_scenario": "none"}
+    result = evaluate_scenario(cid, "medium", 3, False, damage_scenario="none")
+    ctx = C.build_context(customer_label=label, inputs=inputs, result=result,
+                          backend_name="real", damage_scenarios=get_damage_scenarios(cid))
+    text = G.fallback_answer("what does my estimate mean right now?", ctx).lower()
+    assert "no repair" in text
+    assert "guarantee" in text and "uninterrupted power" in text
+
+
+def test_fallback_unknown_does_not_invent_duration():
+    cid = get_customers()[0]["id"]
+    label = get_customers()[0]["label"]
+    inputs = {"customer_label": label, "storm_severity": "medium",
+              "available_crews": 3, "access_blocked": False, "damage_scenario": "unmapped_asset"}
+    result = evaluate_scenario(cid, "medium", 3, False, damage_scenario="unmapped_asset")
+    ctx = C.build_context(customer_label=label, inputs=inputs, result=result,
+                          backend_name="real", damage_scenarios=get_damage_scenarios(cid))
+    text = G.fallback_answer("how long will restoration take?", ctx).lower()
+    assert "unknown" in text
+    import re
+    assert not re.search(r"\b\d+(\.\d+)?\s*(hour|hr)\b", text), "must not invent a duration"
+
+
+def test_system_prompt_mentions_special_state_rules():
+    """The live system prompt must instruct the model on no-damage/unknown states."""
+    sp = G.SYSTEM_INSTRUCTIONS.lower()
+    assert "no_damage_modeled" in sp or "no repairs modeled" in sp
+    assert "uninterrupted power" in sp
+    assert "estimate_unknown" in sp or "unknown" in sp
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     passed = 0
