@@ -1,0 +1,4 @@
+# StormReady — Milestone 1 dependencies
+# Pinned for reproducibility. Keep in sync with the shared contract.
+
+streamlit==1.39.0
