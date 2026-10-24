@@ -222,3 +222,7 @@ __marimo__/
 data/extracted/
 .env
 .venv/
+
+# Review/export archives (generated for external review; never committed)
+stormready-review.zip
+*-review.zip

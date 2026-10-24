@@ -16,10 +16,46 @@ challenge. A residential customer selects an anonymized household and receives:
 Judges must be able to change scenario inputs (household, storm severity, crew
 availability, access conditions) and see the results update.
 
+### Data reality (current state — supersedes the old "synthetic-only" statement)
+The default backend now uses **real, anonymized** AEP network topology and labor
+references. What is and isn't real:
+- **Real (anonymized):** topology (customer→transformer→upstream devices), equipment
+  types, anonymized circuit names, historical damage counts, labor install/removal
+  references, and the single indirect labor multiplier (ILM 4.5).
+- **Simulated:** the storm severity AND the specific damage scenario (which assets are
+  damaged, quantities, and repair tasks). Chosen via user presets, not a live feed.
+- **Historical context, not current damage:** prior circuit damage is background only; it
+  does not prove current damage and does not generate repair work.
+- **Unvalidated heuristic:** the restoration estimate is a transparent effort calculation,
+  never checked against real outcomes. Its low–high range is an ASSUMED uncertainty band,
+  NOT a statistically validated interval.
+- **Evidence quality** reflects how much real data backs the inputs — it must NOT be read
+  as measured prediction accuracy.
+- A clearly-labeled **synthetic demo** backend remains as a fallback.
+
+### Live AI concierge (milestone 3 — present)
+- The **Ask StormReady** chat explains engine results via Amazon Bedrock (Converse API,
+  `boto3`). The ENGINE is always the source of numbers; the model never computes or
+  overrides the active scenario. "More crews?" questions are answered by re-running the
+  engine with the same scenario and more crews.
+- The context sent to the model is **allowlisted and PII-free** (see `concierge/context.py`);
+  raw premise numbers, addresses, meters, employee fields, coordinates, and datasets are
+  excluded by construction.
+- AWS config (region + model id) is **external** (env vars); credentials use the normal
+  chain. Nothing secret is stored in code, Git, output, or logs. If AWS is unavailable,
+  a **clearly-labeled rule-based fallback** answers instead — never shown as live AI.
+
 ### What this milestone is NOT
-- Not using real AEP network topology, real customer records, or confirmed predictions.
-- No GIS processing, model training, live AI, real messaging, or AWS deployment yet.
-- All outputs are **synthetic demo estimates** and are labeled as such everywhere.
+- No model training, real messaging, or AWS *deployment* yet (runtime invocation only).
+- No claim of confirmed/accurate outage or restoration predictions.
+
+### Temporary ownership arrangement (solo)
+> **Temporary:** while the team is operating solo, a single maintainer is authorized to
+> edit across `engine/`, `scripts/`, `app.py`, `ui/`, `tests/`, and shared docs
+> (`README.md`, `AGENTS.md`), including the shared contract — taking care to keep the UI
+> and `engine/contracts.py` consistent in the same change. The split ownership below
+> resumes when the second maintainer returns, and shared-contract/dependency changes go
+> back to requiring coordination.
 
 ## Architecture
 
@@ -28,16 +64,28 @@ app.py                 Streamlit entry point (UI)
 ui/
   sidebar.py           Customer selection + scenario input controls + reset
   components.py        Reusable cards, checklist, notification preview
+ui/
+  concierge_panel.py   "Ask StormReady" chat (explicit-action calls only; live/fallback badge)
 engine/
   contracts.py         Shared inputs/outputs contract + example response (source of truth)
-  api.py               Public interface the UI imports (get_customers, evaluate_scenario)
+  api.py               Public interface the UI imports (get_customers, evaluate_scenario, ...)
   demo.py              Synthetic demo backend (fictional households + deterministic logic)
+  realdata.py          Real anonymized backend + simulated damage scenarios
+  restoration.py       Crew/dependency-aware restoration scheduler
+  formatting.py        Shared window formatting (incl. "No repairs modeled")
+concierge/
+  context.py           Allowlisted, PII-free context builder
+  grounding.py         System/grounding instructions, approved safety guidance, fallback
+  provider.py          Amazon Bedrock Converse call + external config/availability
+  assistant.py         Orchestration: context -> provider-or-fallback, engine counterfactuals
 data/                  Challenge datasets (raw zips) + extraction instructions
 docs/                  Challenge brief and structure diagrams
 ```
 
-Data flow: `app.py` / `ui/` import **only** from `engine/api.py`. `api.py` delegates to a
-backend (currently `engine/demo.py`). The UI never imports `demo.py` directly.
+Data flow: `app.py` / `ui/` import **only** from `engine/api.py` for engine results and
+from `concierge/` for chat. `api.py` delegates to a backend. The concierge is called ONLY
+on an explicit user question/suggested-click, never on ordinary reruns, and uses the
+engine as the sole source of numbers.
 
 ## Shared contract
 
@@ -58,7 +106,7 @@ List of dicts: `{"id": str, "label": str}`.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `risk_band` | `str` | `Low` / `Moderate` / `High` / `Critical` |
-| `evidence_quality` | `str` | `High` / `Medium` / `Low` (always `Low` in demo) |
+| `evidence_quality` | `str` | `High` / `Medium` / `Low` — how much real data backs the inputs, NOT prediction accuracy (`Low` in the synthetic demo, `Medium` in the real-data backend) |
 | `risk_factors` | `list[str]` | contributing factors |
 | `restoration_low_hours` | `float \| None` | lower bound; `None` = unknown |
 | `restoration_high_hours` | `float \| None` | upper bound; `None` = unknown |
@@ -73,14 +121,21 @@ List of dicts: `{"id": str, "label": str}`.
 
 ## Ownership rules
 
+Parallel-development split (both maintainers active):
+
 | Area | Owner |
 | --- | --- |
-| `engine/`, `scripts/`, processed data | **Samai** |
-| `app.py`, `ui/` | **Roommate** |
-| `engine/contracts.py`, `requirements.txt` | **Shared — coordinate before changing** |
+| `engine/`, `concierge/`, `scripts/`, and backend tests (`tests/test_calculations.py`, `tests/test_concierge.py`) | **Samai** |
+| `app.py`, `ui/`, styling, and dedicated UI tests | **Roommate** |
+| `engine/contracts.py` (public interface), `requirements.txt`, and processed-data schemas (`data/processed/*` shape produced by `scripts/build_processed.py` and consumed by `engine/`) | **Shared — coordinate before changing** |
 
-Any change to the shared contract or dependencies requires agreement between both owners,
-because it affects code on the other side of the boundary.
+Coordinate before changing any **public interface** (`engine/api.py` / `engine/contracts.py`
+signatures and output fields), `requirements.txt`, or the **processed-data schema**, because
+each affects code on the other side of the boundary. Everything else can proceed in parallel
+within the owner's area.
+
+> Note: the earlier "temporary solo arrangement" section above is superseded by this split now
+> that both maintainers are active again.
 
 ## Integrity rules for agents
 

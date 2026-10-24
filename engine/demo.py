@@ -73,17 +73,35 @@ def get_customers() -> list[dict]:
     return [{"id": c["id"], "label": c["label"]} for c in _DEMO_CUSTOMERS]
 
 
+def get_damage_scenarios(customer_id: str) -> list[dict]:
+    """
+    Synthetic backend has no preset damage scenarios. Returns a single
+    placeholder so the UI can render uniformly across backends.
+    """
+    if customer_id not in _CUSTOMER_INDEX:
+        raise ValueError(f"Unknown customer_id: {customer_id!r}")
+    return [{
+        "id": "synthetic",
+        "label": "Synthetic demo (no damage presets)",
+        "description": "The synthetic backend uses rule-based estimates, not simulated damage presets.",
+        "damaged_assets": [],
+        "jobs": [],
+    }]
+
+
 def evaluate_scenario(
     customer_id: str,
     storm_severity: str,       # "low" | "medium" | "high"
     available_crews: int,      # 1–10
     access_blocked: bool,
+    damage_scenario: str | None = None,  # accepted for API parity; not used here
 ) -> dict:
     """
     Deterministic synthetic scenario evaluation.
 
     Returns a ScenarioResult dict as documented in engine/contracts.py.
     All values are invented — clearly labeled as synthetic demo estimates.
+    `damage_scenario` is accepted for signature compatibility and ignored.
     """
     if customer_id not in _CUSTOMER_INDEX:
         raise ValueError(f"Unknown customer_id: {customer_id!r}")
@@ -93,10 +111,10 @@ def evaluate_scenario(
     # ------------------------------------------------------------------
     # 1. Risk band (likelihood of losing power)
     #
-    # Deliberately independent of available_crews and of the household's
-    # declared medical needs: neither changes how likely an outage is.
-    # available_crews and medical needs are used later (restoration / prep /
-    # alert eligibility), never here.
+    # Deliberately independent of available_crews, access_blocked, and of the
+    # household's declared medical needs: none of these change how likely an
+    # outage is. Crews/access are used later (restoration window) and medical
+    # needs only affect prep/alert eligibility — never the risk score here.
     # ------------------------------------------------------------------
     risk_score = 0
     risk_factors: list[str] = []
@@ -134,9 +152,12 @@ def evaluate_scenario(
         risk_factors.append("Looped topology provides a potential backup feed path")
 
     # Access
+    # NOTE: blocked access is a delay REACHING repairs, not a driver of whether
+    # power is lost. It must NOT change the physical outage-risk score — it only
+    # affects the restoration window below.
     if access_blocked:
-        risk_score += 1
-        risk_factors.append("Access routes reported blocked — delays crew dispatch")
+        risk_factors.append("Access routes reported blocked — affects restoration time only, "
+                            "not the likelihood of losing power")
 
     # Map score → band
     if risk_score <= 2:
@@ -214,7 +235,7 @@ def evaluate_scenario(
     prep: list[str] = [
         "Charge all phones, tablets, and portable power banks now.",
         "Keep refrigerator and freezer doors closed to preserve food.",
-        "Locate flashlights, candles, and matches.",
+        "Locate flashlights and battery-powered lanterns, and check their batteries.",
         "Know where your main circuit breaker is located.",
     ]
     if storm_severity in ("medium", "high"):
@@ -258,7 +279,8 @@ def evaluate_scenario(
     assumptions = [
         "All estimates are synthetic demo data — they do not reflect real AEP network records.",
         "Restoration window is derived from simplified rules, not live outage management data.",
-        "Crew availability affects the restoration-duration estimate only, not the likelihood of losing power.",
+        "Crew availability and blocked access affect the restoration-duration estimate only, "
+        "not the likelihood of losing power.",
         "Crew routing, mutual-aid agreements, and actual storm track are not modeled.",
         "\"Alert eligible\" means the household meets StormReady's prototype notification rules — "
         "it does not mean the customer is enrolled in any AEP program, qualifies for one, or has "

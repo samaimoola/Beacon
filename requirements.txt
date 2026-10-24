@@ -1,4 +1,8 @@
-# StormReady — Milestone 1 dependencies
-# Pinned for reproducibility. Keep in sync with the shared contract.
+# StormReady dependencies. Pinned for reproducibility.
 
 streamlit==1.39.0
+
+# Live AI concierge via Amazon Bedrock (Converse API). Credentials/region/model
+# are configured EXTERNALLY (never in code). The app runs without AWS access,
+# using a clearly-labeled rule-based fallback.
+boto3>=1.34,<2
