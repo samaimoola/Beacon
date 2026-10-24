@@ -360,13 +360,14 @@ def render_sidebar() -> tuple[str, str, int, bool, str | None]:
     </div>
     """, unsafe_allow_html=True)
     
-    # Add actual reset button (hidden but functional)
+    # Add actual reset button (functional).
+    # Note: st.button in Streamlit 1.39 does not support label_visibility, so the
+    # label stays visible. (Removed label_visibility="collapsed" which raised TypeError.)
     st.sidebar.button(
         "Reset to defaults",
         key="reset_btn",
         on_click=_reset_callback,
         use_container_width=True,
-        label_visibility="collapsed"
     )
 
     # Scenario summary
