@@ -58,9 +58,15 @@ body {
   }
 }
 
-/* Smooth scrolling */
+/* Prevent scroll jumping on interactions */
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
+  overflow-y: scroll;
+}
+
+body {
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 /* Custom scrollbar */
@@ -79,4 +85,17 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ohio-scarlet);
+}
+
+/* Prevent layout shift when content changes */
+main {
+  min-height: 800px;
+  will-change: auto;
+}
+
+/* Prevent scroll restoration jumping */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    scroll-behavior: auto !important;
+  }
 }

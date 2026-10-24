@@ -29,10 +29,13 @@ export default function Home() {
     }
   }, [selectedCustomer]);
 
-  // Evaluate scenario when inputs change
+  // Evaluate scenario when inputs change (debounced)
   useEffect(() => {
     if (selectedCustomer) {
-      evaluateScenario();
+      const timeout = setTimeout(() => {
+        evaluateScenario();
+      }, 300); // 300ms debounce
+      return () => clearTimeout(timeout);
     }
   }, [selectedCustomer, stormSeverity, availableCrews, accessBlocked, selectedScenario]);
 
@@ -162,7 +165,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Sidebar Controls */}
           <aside className="lg:col-span-4">
-            <div className="card-scarlet sticky top-8">
+            <div className="card-scarlet">
               <h2 className="text-2xl font-bold text-ohio-scarlet mb-6">Scenario Controls</h2>
 
               {/* Customer Selection */}

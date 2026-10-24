@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { animate, useMotionValue, useReducedMotion } from 'motion/react';
+import { animate, useMotionValue, useReducedMotion } from 'framer-motion';
 import './CometDial.css';
 
 const R = 80;
