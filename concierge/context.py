@@ -57,6 +57,41 @@ def _pick(d: Optional[dict], allowlist) -> Optional[dict]:
     return {k: d.get(k) for k in allowlist if k in d}
 
 
+def _estimate_notes(result: Optional[dict]) -> dict:
+    """
+    Grounded flags + required phrasing for special restoration states, so the
+    model reflects the correct caveats instead of over-reassuring.
+
+    - no_damage_modeled: a true 0–0 window from a "no damage" preset. The answer
+      MUST state this does NOT guarantee uninterrupted power.
+    - estimate_unknown: a None window (e.g. unmapped asset). The answer MUST say
+      the duration is unknown and MUST NOT invent a number.
+    """
+    notes = {
+        "no_damage_modeled": False,
+        "estimate_unknown": False,
+        "required_caveats": [],
+    }
+    if not result:
+        return notes
+    low = result.get("restoration_low_hours")
+    high = result.get("restoration_high_hours")
+    if low is None or high is None:
+        notes["estimate_unknown"] = True
+        notes["required_caveats"].append(
+            "The restoration estimate is UNKNOWN for this scenario. State that it is unknown "
+            "and do NOT invent or guess a duration."
+        )
+    elif low == 0 and high == 0:
+        notes["no_damage_modeled"] = True
+        notes["required_caveats"].append(
+            "This scenario models NO equipment damage, so there are 'No repairs modeled' (0 hours "
+            "of modeled repair work). You MUST clarify this does NOT guarantee uninterrupted power "
+            "in a real storm — it only means this particular simulated scenario includes no damage."
+        )
+    return notes
+
+
 def _scenario_label(scenario_id, scenarios) -> Optional[str]:
     if not scenario_id or not scenarios:
         return scenario_id
@@ -91,13 +126,19 @@ def build_context(
             current_inputs["damage_scenario"], damage_scenarios
         )
 
+    picked_result = _pick(result, _RESULT_ALLOWLIST)
+
     ctx: dict = {
         "household_label": customer_label,
         "backend": backend_name,  # "real" or "demo"
         "current_scenario": {
             "inputs": current_inputs,
-            "result": _pick(result, _RESULT_ALLOWLIST),
+            "result": picked_result,
         },
+        # Derived, grounded notes about special estimate states. These are facts
+        # about the current engine result, phrased so the model MUST reflect the
+        # required caveats (no-damage is not a guarantee; unknown is not a number).
+        "estimate_notes": _estimate_notes(picked_result),
         "previous_scenario": None,
         "input_changes": None,
         # Approved guidance is injected by the assistant from grounding.py so the

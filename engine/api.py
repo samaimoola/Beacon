@@ -121,3 +121,77 @@ def evaluate_scenario(
         access_blocked=access_blocked,
         damage_scenario=damage_scenario,
     )
+
+
+# ---------------------------------------------------------------------------
+# Notification lifecycle (additive — does not change any existing signature)
+# ---------------------------------------------------------------------------
+
+from engine import notifications as _notifications
+
+# Re-export the accepted lifecycle-state constants for callers/UI.
+LIFECYCLE_STATES = _notifications.LIFECYCLE_STATES
+PRE_STORM = _notifications.PRE_STORM
+OUTAGE_CONFIRMED = _notifications.OUTAGE_CONFIRMED
+RESTORATION_UPDATED = _notifications.RESTORATION_UPDATED
+RESTORATION_COMPLETE = _notifications.RESTORATION_COMPLETE
+
+
+def build_notification_preview(
+    *,
+    lifecycle_state: str,
+    inputs: dict,
+    result: dict,
+    prev_result: dict | None = None,
+    preferences: dict | None = None,
+) -> dict:
+    """
+    Build a SIMULATED notification preview for one lifecycle state.
+
+    Deterministic; makes no AI calls and sends nothing. Numbers come verbatim
+    from `result`. See engine/notifications.py and docs/notifications_integration.md
+    for the full field list and rules.
+
+    Parameters
+    ----------
+    lifecycle_state : str
+        One of api.LIFECYCLE_STATES. OUTAGE_CONFIRMED and RESTORATION_COMPLETE
+        require this explicit state (never inferred from risk band or zero duration).
+    inputs : dict
+        Current scenario inputs (customer_label, storm_severity, ...).
+    result : dict
+        Current engine result from evaluate_scenario().
+    prev_result : dict | None
+        Previous engine result (used for RESTORATION_UPDATED change classification).
+    preferences : dict | None
+        {"opted_in": bool, "available_channels": list[str], "preferred_channel": str|None}.
+        Kept separate from scenario eligibility.
+
+    Returns
+    -------
+    dict — see engine/notifications.build_notification_preview for all keys.
+    """
+    return _notifications.build_notification_preview(
+        lifecycle_state=lifecycle_state,
+        inputs=inputs,
+        result=result,
+        prev_result=prev_result,
+        preferences=preferences,
+    )
+
+
+def build_lifecycle_previews(
+    *,
+    inputs: dict,
+    result: dict,
+    prev_result: dict | None = None,
+    preferences: dict | None = None,
+) -> dict:
+    """
+    Build previews for all four lifecycle states at once: {state: preview_dict}.
+    Convenience wrapper over build_notification_preview.
+    """
+    return _notifications.build_lifecycle_previews(
+        inputs=inputs, result=result,
+        prev_result=prev_result, preferences=preferences,
+    )
