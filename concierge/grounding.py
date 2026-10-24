@@ -62,13 +62,10 @@ Absolute rules:
 # ---------------------------------------------------------------------------
 # Approved safety guidance (pre-written; the model must not invent alternatives)
 # ---------------------------------------------------------------------------
-
-APPROVED_SAFETY_GUIDANCE = [
-    "Stay far away from any downed power line and assume it is energized; report it to AEP Ohio at 1-800-672-2231.",
-    "Do not run a generator indoors or in a garage; follow the manufacturer's instructions.",
-    "If you rely on electrically powered medical equipment, have a backup plan and know where to go if power is out.",
-    "Use flashlights and battery-powered lanterns rather than open flames.",
-]
+# Single source of truth lives in engine/safety.py so the notification service
+# reuses the exact same lines. Re-exported here to keep the concierge's public
+# name (grounding.APPROVED_SAFETY_GUIDANCE) unchanged.
+from engine.safety import APPROVED_SAFETY_GUIDANCE  # noqa: F401
 
 
 def approved_preparation(result: dict) -> list[str]:
