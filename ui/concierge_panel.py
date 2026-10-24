@@ -18,6 +18,12 @@ from concierge import answer_question, provider_status
 from concierge.grounding import SUGGESTED_QUESTIONS
 from engine.api import evaluate_scenario
 
+from ui.theme import (
+    CARLET, GREY_DARK, GREY_MEDIUM, GREY_LIGHT, GREY_BORDER, AMBER,
+    SUCCESS, WARNING, ERROR, INFO,
+    TYPOGRAPHY, SPACING, BORDER_RADIUS,
+)
+
 # Session keys owned by this panel.
 _HISTORY = "_concierge_history"          # list[dict]: {role, text, mode, note}
 _SCENARIO_SIG = "_concierge_scenario_sig"  # signature of the scenario the history belongs to
@@ -45,15 +51,46 @@ def _scenario_signature(customer_id: str, inputs: dict) -> tuple:
 def _status_badge() -> None:
     status = provider_status()
     if status.ready:
-        st.success("🟢 Live AI: connected to Amazon Bedrock. Answers are generated and "
-                   "grounded in the engine's results.", icon="🤖")
+        st.markdown(f"""
+        <div style="
+            background-color: #E8F5E9;
+            border: 1px solid {SUCCESS};
+            border-left: 6px solid {SUCCESS};
+            border-radius: {BORDER_RADIUS['md']};
+            padding: {SPACING['md']};
+            margin-bottom: {SPACING['lg']};
+            font-size: {TYPOGRAPHY['body']};
+            color: {GREY_DARK};
+        ">
+            <div style="display: flex; align-items: center; gap: {SPACING['sm']}; margin-bottom: {SPACING['xs']};">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background-color: {SUCCESS};"></div>
+                <span style="font-weight: 600; color: {SUCCESS};">Live AI: connected to Amazon Bedrock</span>
+            </div>
+            <div>Answers are generated and grounded in the engine's results.</div>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.warning(
-            "🟡 Rule-based fallback (live AI not configured). Answers are composed directly "
-            "from the engine's results — accurate, but not AI-generated.\n\n"
-            f"Blocker: {status.blocker}",
-            icon="🛟",
-        )
+        st.markdown(f"""
+        <div style="
+            background-color: #FFF3E0;
+            border: 1px solid {WARNING};
+            border-left: 6px solid {WARNING};
+            border-radius: {BORDER_RADIUS['md']};
+            padding: {SPACING['md']};
+            margin-bottom: {SPACING['lg']};
+            font-size: {TYPOGRAPHY['body']};
+            color: {GREY_DARK};
+        ">
+            <div style="display: flex; align-items: center; gap: {SPACING['sm']}; margin-bottom: {SPACING['xs']};">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background-color: {WARNING};"></div>
+                <span style="font-weight: 600; color: {WARNING};">Rule-based fallback (live AI not configured)</span>
+            </div>
+            <div style="margin-bottom: {SPACING['xs']};">Answers are composed directly from the engine's results — accurate, but not AI-generated.</div>
+            <div style="font-size: {TYPOGRAPHY['small']}; color: {GREY_MEDIUM};">
+                <strong>Blocker:</strong> {status.blocker}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 def _ask(question: str, *, customer_id: str, customer_label: str, inputs: dict,
@@ -96,12 +133,18 @@ def render_concierge(
     input_changes,
 ) -> None:
     """Render the Ask StormReady area."""
-    st.subheader("💬 Ask StormReady")
-    st.caption(
-        "Ask what your estimate means, why it changed, or how to prepare. Answers explain "
-        "the engine's calculated results — the assistant never invents numbers, weather, "
-        "outages, or AEP program eligibility."
-    )
+    st.markdown(f'<h3 style="margin-bottom: {SPACING["md"]};">💬 Ask StormReady</h3>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="
+        color: {GREY_MEDIUM};
+        font-size: {TYPOGRAPHY['body']};
+        margin-bottom: {SPACING['lg']};
+    ">
+        Ask what your estimate means, why it changed, or how to prepare. Answers explain 
+        the engine's calculated results — the assistant never invents numbers, weather, 
+        outages, or AEP program eligibility.
+    </div>
+    """, unsafe_allow_html=True)
 
     _status_badge()
 
@@ -123,10 +166,33 @@ def render_concierge(
     )
 
     # --- Suggested questions (explicit clicks only) ---
-    st.markdown("**Suggested questions**")
+    st.markdown(f"""
+    <div style="
+        font-weight: 600;
+        color: {GREY_DARK};
+        font-size: {TYPOGRAPHY['body']};
+        margin-bottom: {SPACING['sm']};
+    ">
+        Suggested questions
+    </div>
+    <div style="
+        color: {GREY_MEDIUM};
+        font-size: {TYPOGRAPHY['small']};
+        margin-bottom: {SPACING['md']};
+    ">
+        Click any question to get an explanation
+    </div>
+    """, unsafe_allow_html=True)
+    
     cols = st.columns(2)
     for i, q in enumerate(SUGGESTED_QUESTIONS):
-        if cols[i % 2].button(q, key=f"suggest_{i}", use_container_width=True):
+        col = cols[i % 2]
+        if col.button(
+            q,
+            key=f"suggest_{i}",
+            use_container_width=True,
+            type="secondary" if i % 2 == 0 else "primary"
+        ):
             _ask(q, **ask_kwargs)
 
     # --- Render history ---
