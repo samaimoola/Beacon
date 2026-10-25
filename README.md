@@ -3,8 +3,8 @@
 
 HackOHI/O 2026 — AEP AI Outage Concierge
 
-> **Naming note.** This project was formerly called StormReady. The product name is
-> now **Beacon**. The repository, local folder, `STORMREADY_*` environment variables,
+> **Naming note.** This project was formerly called Beacon. The product name is
+> now **Beacon**. The repository, local folder, `Beacon_*` environment variables,
 > API routes, and internal module names are intentionally unchanged so existing
 > setups keep working.
 
@@ -43,7 +43,7 @@ warning only when the engine answers. See `frontend/README.md` for details.
 
 The original Streamlit UI still works and uses the same engine and concierge:
 
-From the repository root (`StormReady/`):
+From the repository root (`Beacon/`):
 
 ```bash
 # 1. Create and activate a virtual environment
@@ -80,8 +80,8 @@ anonymized values are written to `data/processed/`.
 Select a backend explicitly with an env var (default is `auto`):
 
 ```bash
-STORMREADY_BACKEND=real streamlit run app.py   # real anonymized premises
-STORMREADY_BACKEND=demo streamlit run app.py   # synthetic fallback
+Beacon_BACKEND=real streamlit run app.py   # real anonymized premises
+Beacon_BACKEND=demo streamlit run app.py   # synthetic fallback
 ```
 
 ## Live AI concierge (milestone 3)
