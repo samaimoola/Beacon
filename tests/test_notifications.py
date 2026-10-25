@@ -251,6 +251,103 @@ def test_restoration_complete_requires_explicit_state_only():
         assert "restored" not in p["message"].lower()
 
 
+# --------------------------------------------------------------------------
+# restoration_updated: a send also requires a MATERIAL estimate change
+# --------------------------------------------------------------------------
+
+_ELIGIBLE = {"risk_band": "High", "alert_eligible": True}
+_PREFS_OK = {"opted_in": True, "available_channels": ["sms", "email"]}
+
+
+def _est(lo, hi):
+    return dict(_ELIGIBLE, restoration_low_hours=lo, restoration_high_hours=hi)
+
+
+def _updated(prev, curr, prefs=_PREFS_OK):
+    return build_notification_preview(
+        lifecycle_state=N.RESTORATION_UPDATED,
+        inputs={"customer_label": "Real premise 1", "storm_severity": "medium"},
+        result=curr, prev_result=prev, preferences=prefs,
+    )
+
+
+def _assert_preview_kept(p):
+    assert p["message"].startswith("[SIMULATED PREVIEW]")
+    assert "SIMULATED" in p["simulation_label"]
+
+
+def test_updated_unchanged_estimate_is_not_sent():
+    cid, label = _cid_label()
+    res = _result(cid, "pole_and_span")
+    assert res["alert_eligible"] is True
+    p = build_notification_preview(lifecycle_state=N.RESTORATION_UPDATED,
+                                   inputs=_inputs(label, "pole_and_span"), result=res,
+                                   prev_result=dict(res), preferences=_PREFS_OK)
+    assert p["estimate_change"]["material"] is False
+    assert p["send_recommended"] is False, "identical estimates must not recommend a send"
+    assert any("did not change" in b for b in p["send_blockers"]), p["send_blockers"]
+    assert "has been updated" not in p["message"]
+    _assert_preview_kept(p)
+
+
+def test_updated_below_threshold_is_not_sent():
+    p = _updated(_est(9.0, 11.0), _est(10.0, 12.0))   # midpoint 10 -> 11
+    assert p["estimate_change"]["kind"] == "changed" and p["estimate_change"]["material"] is False
+    assert p["send_recommended"] is False
+    assert any("below the material threshold" in b for b in p["send_blockers"]), p["send_blockers"]
+    _assert_preview_kept(p)
+
+
+def test_updated_material_change_is_sent():
+    p = _updated(_est(9.0, 11.0), _est(12.0, 14.0))   # midpoint 10 -> 13
+    assert p["estimate_change"]["material"] is True
+    assert p["send_recommended"] is True and p["send_blockers"] == []
+    assert "has been updated" in p["message"]
+
+
+def test_updated_without_previous_has_no_baseline():
+    p = _updated(None, _est(12.0, 14.0))
+    assert p["estimate_change"]["kind"] == "no_previous"
+    assert p["send_recommended"] is False
+    assert any("no baseline" in b for b in p["send_blockers"]), p["send_blockers"]
+    assert "not an estimate update" in p["message"]
+    _assert_preview_kept(p)
+
+
+def test_updated_transitions_to_and_from_unknown():
+    unknown = _est(None, None)
+    to_u = _updated(_est(4.0, 8.0), unknown)
+    from_u = _updated(unknown, _est(4.0, 8.0))
+    both = _updated(unknown, dict(unknown))
+    assert to_u["send_recommended"] is True and to_u["estimate_change"]["kind"] == "to_unknown"
+    assert from_u["send_recommended"] is True and from_u["estimate_change"]["kind"] == "from_unknown"
+    assert both["send_recommended"] is False
+    assert any("still unknown" in b for b in both["send_blockers"]), both["send_blockers"]
+
+
+def test_updated_material_still_respects_consent_and_channel():
+    opted_out = _updated(_est(9.0, 11.0), _est(12.0, 14.0), {"opted_in": False})
+    no_channel = _updated(_est(9.0, 11.0), _est(12.0, 14.0), {"opted_in": True, "available_channels": []})
+    ineligible = _updated(dict(_est(9.0, 11.0), alert_eligible=False),
+                          dict(_est(12.0, 14.0), alert_eligible=False))
+    for p in (opted_out, no_channel, ineligible):
+        assert p["send_recommended"] is False and p["estimate_change"]["material"] is True
+    assert any("opted out" in b.lower() for b in opted_out["send_blockers"])
+    assert any("channel" in b.lower() for b in no_channel["send_blockers"])
+    assert any("not eligible" in b.lower() for b in ineligible["send_blockers"])
+
+
+def test_other_states_ignore_estimate_change():
+    """The material-change rule applies only to restoration_updated."""
+    same = _est(9.0, 11.0)
+    for state in (N.PRE_STORM, N.OUTAGE_CONFIRMED, N.RESTORATION_COMPLETE):
+        p = build_notification_preview(lifecycle_state=state, inputs={"customer_label": "x",
+                                       "storm_severity": "medium"}, result=same,
+                                       prev_result=dict(same), preferences=_PREFS_OK)
+        assert p["estimate_change"] is None
+        assert p["send_recommended"] is True, (state, p["send_blockers"])
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     passed = 0

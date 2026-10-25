@@ -27,6 +27,7 @@ from __future__ import annotations
 import os
 
 from engine import demo
+from engine import needs as _needs
 from engine import realdata
 
 
@@ -81,6 +82,7 @@ def evaluate_scenario(
     available_crews: int,
     access_blocked: bool,
     damage_scenario: str | None = None,
+    declared_needs: dict | None = None,
 ) -> dict:
     """
     Evaluate outage risk and restoration estimate for a given scenario.
@@ -99,6 +101,13 @@ def evaluate_scenario(
         One of the ids from get_damage_scenarios(customer_id). When None, the
         backend applies a sensible default so existing callers keep working.
         Accepted but ignored by the synthetic demo backend.
+    declared_needs : dict | None, optional
+        Explicit customer declarations, e.g. {"medical_equipment": True,
+        "accessibility_assistance": False}. Only those two boolean keys are read
+        (see engine/needs.py). They tailor ``preparation_actions`` (and add one
+        assumption line) ONLY — risk, restoration hours, factors, and alert
+        eligibility are computed exactly as without them. Default None keeps
+        existing callers unchanged.
 
     Returns
     -------
@@ -114,7 +123,43 @@ def evaluate_scenario(
         assumptions          list[str]     caveats and limitations
         source_label         str           data provenance notice
     """
-    return _backend.evaluate_scenario(
+    result = _backend.evaluate_scenario(
+        customer_id=customer_id,
+        storm_severity=storm_severity,
+        available_crews=available_crews,
+        access_blocked=access_blocked,
+        damage_scenario=damage_scenario,
+    )
+    if not _needs.any_declared(declared_needs):
+        return result
+    # Guidance-only layer: copy the physical result and change nothing but the
+    # preparation list and one explanatory assumption.
+    tailored = dict(result)
+    tailored["preparation_actions"] = _needs.tailor_preparation(
+        result.get("preparation_actions") or [], declared_needs
+    )
+    tailored["assumptions"] = list(result.get("assumptions") or []) + [_needs.DECLARED_NEEDS_NOTE]
+    return tailored
+
+
+def schedule_summary(
+    customer_id: str,
+    storm_severity: str,
+    available_crews: int,
+    access_blocked: bool,
+    damage_scenario: str | None = None,
+) -> dict | None:
+    """
+    Structured scheduling facts (repair_jobs, unknown_jobs, critical_path_hours,
+    dependency_limited, access_delay_hours, ...) for the same scenario inputs, or
+    None when the active backend has no job scheduler (the synthetic demo).
+    Additive helper used to explain crew comparisons; it does not change
+    evaluate_scenario's output shape.
+    """
+    fn = getattr(_backend, "schedule_summary", None)
+    if fn is None:
+        return None
+    return fn(
         customer_id=customer_id,
         storm_severity=storm_severity,
         available_crews=available_crews,

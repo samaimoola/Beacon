@@ -1,7 +1,7 @@
 """
 ui/components.py
 ================
-Reusable Streamlit rendering components for the StormReady UI.
+Reusable Streamlit rendering components for the Beacon UI.
 
 This module ONLY renders. All numbers, bands, factors, assumptions, and the
 source label come from the engine result dict (engine/api.py). The UI never
@@ -252,7 +252,7 @@ def alert_badge(result: dict) -> None:
                     <span style="font-weight: 600; color: {SUCCESS};">Eligible for prototype alerts</span>
                 </div>
                 <div style="margin-top: {SPACING['sm']}; font-size: {TYPOGRAPHY['small']}; color: {GREY_MEDIUM};">
-                    This scenario meets StormReady's documented notification criteria. 
+                    This scenario meets Beacon's documented notification criteria. 
                     <strong>This is not AEP enrollment, program qualification, or guaranteed restoration priority.</strong>
                 </div>
                 ''',
@@ -271,7 +271,7 @@ def alert_badge(result: dict) -> None:
                     <span style="font-weight: 600; color: {GREY_MEDIUM};">Not eligible for prototype alerts</span>
                 </div>
                 <div style="margin-top: {SPACING['sm']}; font-size: {TYPOGRAPHY['small']}; color: {GREY_MEDIUM};">
-                    This scenario does not meet StormReady's prototype notification criteria. 
+                    This scenario does not meet Beacon's prototype notification criteria. 
                     <strong>Prototype rules only — not an AEP program decision.</strong>
                 </div>
                 ''',
@@ -362,22 +362,26 @@ def what_changed_panel(prev: dict | None, curr: dict, prev_inputs: dict | None,
     input_rows = compute_input_changes(prev_inputs, curr_inputs)
 
     if input_rows:
-        st.markdown(
-            _card_html(
-                "Inputs you changed",
-                f'''
-                <div style="font-size: {TYPOGRAPHY['body']};">
-                {"".join([f'''
-                <div style="margin-bottom: {SPACING['sm']}; padding: {SPACING['xs']} {SPACING['sm']}; 
-                     background-color: {GREY_LIGHT}; border-radius: {BORDER_RADIUS['sm']};">
+        _input_rows_html = "".join(
+            f'''
+                <div style="margin-bottom: {SPACING["sm"]}; padding: {SPACING["xs"]} {SPACING["sm"]}; 
+                     background-color: {GREY_LIGHT}; border-radius: {BORDER_RADIUS["sm"]};">
                     <div style="font-weight: 600; color: {GREY_DARK}; margin-bottom: 2px;">{label}</div>
-                    <div style="display: flex; align-items: center; gap: {SPACING['xs']}; color: {GREY_MEDIUM};">
+                    <div style="display: flex; align-items: center; gap: {SPACING["xs"]}; color: {GREY_MEDIUM};">
                         <span>{before}</span>
                         <span style="color: {CARLET};">→</span>
                         <span style="font-weight: 600; color: {CARLET};">{after}</span>
                     </div>
                 </div>
-                ''' for label, before, after in input_rows])}
+                '''
+            for label, before, after in input_rows
+        )
+        st.markdown(
+            _card_html(
+                "Inputs you changed",
+                f'''
+                <div style="font-size: {TYPOGRAPHY['body']};">
+                {_input_rows_html}
                 </div>
                 ''',
                 border_color=AMBER,
@@ -439,27 +443,31 @@ def what_changed_panel(prev: dict | None, curr: dict, prev_inputs: dict | None,
         ))
 
     if changed_items:
+        _changed_items_html = "".join(
+            f'''
+                <div style="margin-bottom: {SPACING["md"]};">
+                    <div style="font-weight: 600; color: {GREY_DARK}; margin-bottom: 4px;">{label}</div>
+                    <div style="display: flex; align-items: center; gap: {SPACING["sm"]};">
+                        <div style="flex: 1; padding: {SPACING["xs"]}; background-color: {GREY_LIGHT}; 
+                             border-radius: {BORDER_RADIUS["sm"]}; text-align: center;">
+                            {before}
+                        </div>
+                        <span style="color: {CARLET}; font-weight: 600;">→</span>
+                        <div style="flex: 1; padding: {SPACING["xs"]}; background-color: #E8F5E9; 
+                             border: 1px solid {SUCCESS}; border-radius: {BORDER_RADIUS["sm"]}; text-align: center;">
+                            {after}
+                        </div>
+                    </div>
+                </div>
+                '''
+            for label, before, after in changed_items
+        )
         st.markdown(
             _card_html(
                 "Resulting changes",
                 f'''
                 <div style="font-size: {TYPOGRAPHY['body']};">
-                {"".join([f'''
-                <div style="margin-bottom: {SPACING['md']};">
-                    <div style="font-weight: 600; color: {GREY_DARK}; margin-bottom: 4px;">{label}</div>
-                    <div style="display: flex; align-items: center; gap: {SPACING['sm']};">
-                        <div style="flex: 1; padding: {SPACING['xs']}; background-color: {GREY_LIGHT}; 
-                             border-radius: {BORDER_RADIUS['sm']}; text-align: center;">
-                            {before}
-                        </div>
-                        <span style="color: {CARLET}; font-weight: 600;">→</span>
-                        <div style="flex: 1; padding: {SPACING['xs']}; background-color: #E8F5E9; 
-                             border: 1px solid {SUCCESS}; border-radius: {BORDER_RADIUS['sm']}; text-align: center;">
-                            {after}
-                        </div>
-                    </div>
-                </div>
-                ''' for label, before, after in changed_items])}
+                {_changed_items_html}
                 </div>
                 ''',
                 border_color=SUCCESS,
@@ -558,7 +566,7 @@ Using it as practice, we recommend taking preparation steps now.{alert_line}
 For real-time outage status in an actual event, use the AEP Ohio outage map \
 (aepohio.com/outagemap) or report an outage to AEP Ohio at 1-800-672-2231.
 
-— StormReady Outage Concierge (prototype · simulated preview)"""
+— Beacon Outage Concierge (prototype · simulated preview)"""
 
     st.markdown(f'<h3 style="margin-bottom: {SPACING["md"]};">📨 Notification preview</h3>', unsafe_allow_html=True)
     
@@ -603,6 +611,16 @@ For real-time outage status in an actual event, use the AEP Ohio outage map \
 def assumptions_expander(result: dict) -> None:
     """Render the assumptions and caveats section."""
     with st.expander("📝 Assumptions & caveats", expanded=False):
+        _assumptions_html = "".join(
+            f'''
+                <div style="margin-bottom: {SPACING["sm"]}; padding-left: {SPACING["md"]}; position: relative;">
+                    <div style="position: absolute; left: 0; top: 0.4rem; width: 6px; height: 6px; 
+                         border-radius: 50%; background-color: {WARNING};"></div>
+                    <div>{assumption}</div>
+                </div>
+                '''
+            for assumption in result["assumptions"]
+        )
         st.markdown(
             _card_html(
                 "Important limitations",
@@ -611,13 +629,7 @@ def assumptions_expander(result: dict) -> None:
                     These assumptions affect the scenario estimates. Review them to understand the limitations.
                 </div>
                 <div style="font-size: {TYPOGRAPHY['body']};">
-                {"".join([f'''
-                <div style="margin-bottom: {SPACING['sm']}; padding-left: {SPACING['md']}; position: relative;">
-                    <div style="position: absolute; left: 0; top: 0.4rem; width: 6px; height: 6px; 
-                         border-radius: 50%; background-color: {WARNING};"></div>
-                    <div>{assumption}</div>
-                </div>
-                ''' for assumption in result["assumptions"]])}
+                {_assumptions_html}
                 </div>
                 ''',
                 border_color=WARNING,

@@ -1,0 +1,45 @@
+{
+  "name": "beacon-video",
+  "version": "1.0.0",
+  "description": "My Remotion video",
+  "repository": {},
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.538",
+    "@remotion/fonts": "4.0.538",
+    "@remotion/transitions": "4.0.538",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.538"
+  },
+  "devDependencies": {
+    "@fontsource-variable/fraunces": "5.3.0",
+    "@fontsource-variable/inter": "5.3.0",
+    "@remotion/eslint-config-flat": "4.0.538",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "10.12.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "studio": "remotion studio",
+    "build": "remotion bundle",
+    "render:intro": "remotion render BeaconIntro out/beacon-intro.mp4",
+    "render:repair": "remotion render RepairDependencies out/beacon-repair-dependencies.mp4",
+    "render:outro": "remotion render BeaconOutro out/beacon-outro.mp4",
+    "render:preview": "remotion render BeaconPreview out/beacon-preview.mp4",
+    "render:all": "npm run render:intro && npm run render:repair && npm run render:outro && npm run render:preview",
+    "data": "cd .. && .venv/bin/python beacon-video/scripts/export_engine_data.py",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src && tsc"
+  },
+  "allowScripts": {
+    "esbuild": false
+  }
+}

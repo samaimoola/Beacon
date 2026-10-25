@@ -130,7 +130,8 @@ def main() -> int:
 
     # ---- Case 3: Would another crew help? (critical path) ----
     inp3, res3 = _mk(cid, label, "medium", 3, False, "pole_and_span")  # serial chain
-    cf = evaluate_scenario(cid, "medium", 10, False, damage_scenario="pole_and_span")
+    # "Another crew" means exactly one more (3 -> 4), matching the assistant.
+    cf = evaluate_scenario(cid, "medium", 4, False, damage_scenario="pole_and_span")
     base_w = (res3["restoration_low_hours"], res3["restoration_high_hours"])
     cf_w = (cf["restoration_low_hours"], cf["restoration_high_hours"])
     crews_no_help = base_w == cf_w  # expect True for serial chain

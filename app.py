@@ -1,7 +1,7 @@
 """
 app.py
 ======
-StormReady — AEP AI Outage Concierge (HackOHI/O 2026)
+Beacon — AEP AI Outage Concierge (HackOHI/O 2026)
 Streamlit customer interface over the engine API.
 
 The UI is presentation-only: every estimate, band, factor, and source label
@@ -69,7 +69,7 @@ def _header() -> None:
             margin-bottom: 0;
             font-size: {TYPOGRAPHY['h1']};
         ">
-            StormReady
+            Beacon
         </h1>
         <div style="
             color: {GREY_MEDIUM};
@@ -108,7 +108,7 @@ def _top_metrics(result: dict) -> None:
 
 def main() -> None:
     st.set_page_config(
-        page_title="StormReady — Outage Concierge",
+        page_title="Beacon — Outage Concierge",
         page_icon="⛈️",
         layout="wide",
     )
@@ -186,7 +186,7 @@ def main() -> None:
     input_changes = compute_input_changes(prev_inputs, curr_inputs)
 
     tab_est, tab_changed, tab_prep, tab_notify, tab_ask = st.tabs(
-        ["🔮 Estimates", "🔀 What changed?", "📋 Prepare", "📨 Notification", "💬 Ask StormReady"]
+        ["🔮 Estimates", "🔀 What changed?", "📋 Prepare", "📨 Notification", "💬 Ask Beacon AI"]
     )
 
     with tab_est:
@@ -247,11 +247,11 @@ def main() -> None:
         st.caption(
             "Phone and map verified against AEP Ohio's official site; medical-certificate "
             "details from the Public Utilities Commission of Ohio and the Ohio Consumers' "
-            "Counsel. StormReady is a student prototype and is not affiliated with AEP."
+            "Counsel. Beacon is a student prototype and is not affiliated with AEP."
         )
 
     st.caption(
-        f"StormReady prototype · active engine backend: **{backend}** · built for HackOHI/O 2026."
+        f"Beacon prototype · active engine backend: **{backend}** · built for HackOHI/O 2026."
     )
 
     # --- Remember this evaluation as the "last" scenario ---

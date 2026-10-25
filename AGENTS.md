@@ -1,10 +1,10 @@
-# AGENTS.md — StormReady
+# AGENTS.md — Beacon
 
 Guidance for humans and AI agents working in this repository.
 
 ## Product scope
 
-StormReady is a prototype **AI Outage Concierge** built for the AEP HackOHI/O 2026
+Beacon is a prototype **AI Outage Concierge** built for the AEP HackOHI/O 2026
 challenge. A residential customer selects an anonymized household and receives:
 
 - An **outage-risk band** with contributing factors and an evidence-quality rating.
@@ -34,10 +34,12 @@ references. What is and isn't real:
 - A clearly-labeled **synthetic demo** backend remains as a fallback.
 
 ### Live AI concierge (milestone 3 — present)
-- The **Ask StormReady** chat explains engine results via Amazon Bedrock (Converse API,
+- The **Ask Beacon AI** chat explains engine results via Amazon Bedrock (Converse API,
   `boto3`). The ENGINE is always the source of numbers; the model never computes or
-  overrides the active scenario. "More crews?" questions are answered by re-running the
-  engine with the same scenario and more crews.
+  overrides the active scenario. "Another crew?" questions compare the current count with
+  exactly one more crew (never above 10) through the engine, and the explanation comes
+  from engine schedule facts (`engine.api.schedule_summary`): critical path only when the
+  scheduler says so; no-damage and Unknown results get their own explanations.
 - The context sent to the model is **allowlisted and PII-free** (see `concierge/context.py`);
   raw premise numbers, addresses, meters, employee fields, coordinates, and datasets are
   excluded by construction.
@@ -57,21 +59,32 @@ references. What is and isn't real:
 > resumes when the second maintainer returns, and shared-contract/dependency changes go
 > back to requiring coordination.
 
+### Declared needs (optional)
+- Two explicit customer booleans (`engine/needs.py`): electricity-dependent medical
+  equipment, and accessibility assistance. Never inferred; session memory only; reset
+  clears them. They tailor guidance and notice wording only — never risk, restoration,
+  crews, alert eligibility, or any implied AEP program/priority.
+
 ## Architecture
 
 ```
-app.py                 Streamlit entry point (UI)
+frontend/              React/Next.js UI (primary): console, reading, concierge, notices
+api_server.py          FastAPI bridge for the React UI (recomputes results server-side)
+app.py                 Streamlit entry point (alternative UI)
 ui/
   sidebar.py           Customer selection + scenario input controls + reset
   components.py        Reusable cards, checklist, notification preview
 ui/
-  concierge_panel.py   "Ask StormReady" chat (explicit-action calls only; live/fallback badge)
+  concierge_panel.py   "Ask Beacon AI" chat (explicit-action calls only; live/fallback badge)
 engine/
   contracts.py         Shared inputs/outputs contract + example response (source of truth)
   api.py               Public interface the UI imports (get_customers, evaluate_scenario, ...)
   demo.py              Synthetic demo backend (fictional households + deterministic logic)
   realdata.py          Real anonymized backend + simulated damage scenarios
-  restoration.py       Crew/dependency-aware restoration scheduler
+  restoration.py       Crew/dependency-aware restoration scheduler (+ dependency_limited flag)
+  notifications.py     Simulated lifecycle notice previews and send decision
+  needs.py             Optional declared needs: allowlist + prewritten guidance
+  safety.py            Approved safety guidance (single source)
   formatting.py        Shared window formatting (incl. "No repairs modeled")
 concierge/
   context.py           Allowlisted, PII-free context builder
@@ -98,6 +111,8 @@ Defined in `engine/contracts.py`. Both engine and UI must conform.
 | `storm_severity` | `str` | `"low"`, `"medium"`, `"high"` |
 | `available_crews` | `int` | `1`–`10` |
 | `access_blocked` | `bool` | `True` / `False` |
+| `damage_scenario` | `str \| None` | optional preset id from `get_damage_scenarios()` |
+| `declared_needs` | `dict \| None` | optional `{"medical_equipment": bool, "accessibility_assistance": bool}`; changes `preparation_actions` (+1 assumption) only |
 
 ### `get_customers()` output
 List of dicts: `{"id": str, "label": str}`.

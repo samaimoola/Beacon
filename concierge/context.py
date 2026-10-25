@@ -15,6 +15,8 @@ safely and sent to the provider without leaking PII.
 from __future__ import annotations
 from typing import Optional
 
+from engine import needs as _needs
+
 # Fields copied verbatim from an engine result. Anything not listed here is
 # dropped. (The engine result is already PII-free, but we allowlist anyway so a
 # future engine field cannot silently leak into the prompt.)
@@ -55,6 +57,17 @@ def _pick(d: Optional[dict], allowlist) -> Optional[dict]:
     if not d:
         return None
     return {k: d.get(k) for k in allowlist if k in d}
+
+
+def _pick_inputs(inputs: Optional[dict], damage_scenarios) -> dict:
+    """Allowlisted scenario inputs plus the two normalized declared-need booleans."""
+    picked = _pick(inputs, _INPUT_ALLOWLIST) or {}
+    if picked.get("damage_scenario"):
+        picked["damage_scenario"] = _scenario_label(picked["damage_scenario"], damage_scenarios)
+    # Declarations are explicit customer choices. Only two booleans pass through —
+    # never free text — so the context identity reflects the needs the answer used.
+    picked["declared_needs"] = _needs.normalize_declared_needs((inputs or {}).get("declared_needs"))
+    return picked
 
 
 def _estimate_notes(result: Optional[dict]) -> dict:
@@ -119,12 +132,9 @@ def build_context(
     (field_label, before, after) tuples describing the most recent meaningful
     change, if any.
     """
-    current_inputs = _pick(inputs, _INPUT_ALLOWLIST) or {}
-    # Replace the raw damage_scenario id with its human label when we can.
-    if current_inputs.get("damage_scenario"):
-        current_inputs["damage_scenario"] = _scenario_label(
-            current_inputs["damage_scenario"], damage_scenarios
-        )
+    # Damage preset ids are replaced by their human labels when we can.
+    current_inputs = _pick_inputs(inputs, damage_scenarios)
+    needs = current_inputs["declared_needs"]
 
     picked_result = _pick(result, _RESULT_ALLOWLIST)
 
@@ -139,6 +149,11 @@ def build_context(
         # about the current engine result, phrased so the model MUST reflect the
         # required caveats (no-damage is not a guarantee; unknown is not a number).
         "estimate_notes": _estimate_notes(picked_result),
+        # Customer-declared needs (explicit opt-in booleans, never inferred) and the
+        # PREWRITTEN guidance they unlock. They never change risk or restoration.
+        "declared_needs": needs,
+        "declared_needs_guidance": _needs.declared_needs_guidance(needs),
+        "declared_needs_note": _needs.DECLARED_NEEDS_NOTE if any(needs.values()) else None,
         "previous_scenario": None,
         "input_changes": None,
         # Approved guidance is injected by the assistant from grounding.py so the
@@ -146,11 +161,7 @@ def build_context(
     }
 
     if prev_result and prev_inputs:
-        prev_in = _pick(prev_inputs, _INPUT_ALLOWLIST) or {}
-        if prev_in.get("damage_scenario"):
-            prev_in["damage_scenario"] = _scenario_label(
-                prev_in["damage_scenario"], damage_scenarios
-            )
+        prev_in = _pick_inputs(prev_inputs, damage_scenarios)
         ctx["previous_scenario"] = {
             "inputs": prev_in,
             "result": _pick(prev_result, _RESULT_ALLOWLIST),

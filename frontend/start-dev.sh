@@ -1,7 +1,7 @@
 #!/bin/bash
-# Development startup script for StormReady React frontend
+# Development startup script for Beacon React frontend
 
-echo "🌩️ Starting StormReady React Frontend..."
+echo "🌩️ Starting Beacon React Frontend..."
 echo ""
 
 # Check if node_modules exists
