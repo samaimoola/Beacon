@@ -64,7 +64,7 @@ build_lifecycle_previews(
 | `scenario_eligible` | bool | From the engine result's `alert_eligible` (prototype rule) |
 | `consent_status` | str | `"opted_in"` or `"opted_out"` |
 | `channel_available` | bool | Whether any channel is available |
-| `send_recommended` | bool | `scenario_eligible AND opted_in AND channel_available` |
+| `send_recommended` | bool | `scenario_eligible AND opted_in AND channel_available`; for `restoration_updated` also requires `estimate_change.material` |
 | `send_blockers` | list[str] | Why a send is **not** recommended (if any) |
 | `estimate_window` | str | `format_window(result)` — `"Unknown"`, `"No repairs modeled"`, or `"x.x–y.y h"` |
 | `estimate_change` | dict \| None | Only for `restoration_updated` (see below) |
@@ -88,6 +88,17 @@ build_lifecycle_previews(
 - **Scenario eligibility** comes from the engine's `alert_eligible` prototype rule and is
   **separate** from opt-in and channel availability. A send is recommended only when all
   three are satisfied.
+- **Estimate-update notices need a material change.** For `restoration_updated`, a send is
+  recommended only if the change is material as well. An unchanged estimate, a
+  below-threshold change, an estimate that stays Unknown, or a missing previous estimate
+  (no comparison baseline) adds a plain-language entry to `send_blockers`. The preview is
+  still drafted; for a non-material case it says the estimate "is" X rather than claiming
+  it "has been updated". Other lifecycle states ignore `prev_result`.
+- **Declared needs** (`inputs["declared_needs"]`, two optional booleans — see
+  `engine/needs.py`) append short prewritten lines to `message` (the approved medical
+  backup-plan line, an ask-someone-to-check-on-you line, "call 911" for immediate risk, and
+  a statement that it does not change restoration priority or enroll anyone). They never
+  change eligibility, channel, timing, or the decision fields.
 - **Default channel / timing** per state are prototype conventions (urgent → SMS,
   informational → email), overridable via `preferences.preferred_channel`.
 

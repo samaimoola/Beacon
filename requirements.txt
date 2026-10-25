@@ -1,4 +1,4 @@
-# StormReady dependencies. Pinned for reproducibility.
+# Beacon dependencies. Pinned for reproducibility.
 
 # Streamlit UI (legacy - being replaced by React)
 streamlit==1.39.0

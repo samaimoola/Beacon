@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# Original screen recordings and narration audio stay local (large / raw media).
+# Required filenames are documented in README.md under "Local source media".
+public/source/

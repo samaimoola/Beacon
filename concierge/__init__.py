@@ -1,7 +1,7 @@
 """
 concierge/
 ==========
-Live AI concierge grounded in StormReady's scenario engine.
+Live AI concierge grounded in Beacon's scenario engine.
 
 Separation of concerns:
   context.py    — builds an ALLOWLISTED, PII-free context object

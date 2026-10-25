@@ -316,7 +316,7 @@ def main() -> None:
     # Human-readable summary (aggregates only; no PII)
     r = report["relationships"]
     print("=" * 70)
-    print("StormReady data inspection — verified relationships (no PII printed)")
+    print("Beacon data inspection — verified relationships (no PII printed)")
     print("=" * 70)
     pj = r["premise_join"]
     print(f"Customers: {pj['customers_total']:,} | matched_upstream rows: {pj['matched_upstream_rows']:,}")

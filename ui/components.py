@@ -1,7 +1,7 @@
 """
 ui/components.py
 ================
-Reusable Streamlit rendering components for the StormReady UI.
+Reusable Streamlit rendering components for the Beacon UI.
 
 This module ONLY renders. All numbers, bands, factors, assumptions, and the
 source label come from the engine result dict (engine/api.py). The UI never
@@ -252,7 +252,7 @@ def alert_badge(result: dict) -> None:
                     <span style="font-weight: 600; color: {SUCCESS};">Eligible for prototype alerts</span>
                 </div>
                 <div style="margin-top: {SPACING['sm']}; font-size: {TYPOGRAPHY['small']}; color: {GREY_MEDIUM};">
-                    This scenario meets StormReady's documented notification criteria. 
+                    This scenario meets Beacon's documented notification criteria. 
                     <strong>This is not AEP enrollment, program qualification, or guaranteed restoration priority.</strong>
                 </div>
                 ''',
@@ -271,7 +271,7 @@ def alert_badge(result: dict) -> None:
                     <span style="font-weight: 600; color: {GREY_MEDIUM};">Not eligible for prototype alerts</span>
                 </div>
                 <div style="margin-top: {SPACING['sm']}; font-size: {TYPOGRAPHY['small']}; color: {GREY_MEDIUM};">
-                    This scenario does not meet StormReady's prototype notification criteria. 
+                    This scenario does not meet Beacon's prototype notification criteria. 
                     <strong>Prototype rules only — not an AEP program decision.</strong>
                 </div>
                 ''',
@@ -566,7 +566,7 @@ Using it as practice, we recommend taking preparation steps now.{alert_line}
 For real-time outage status in an actual event, use the AEP Ohio outage map \
 (aepohio.com/outagemap) or report an outage to AEP Ohio at 1-800-672-2231.
 
-— StormReady Outage Concierge (prototype · simulated preview)"""
+— Beacon Outage Concierge (prototype · simulated preview)"""
 
     st.markdown(f'<h3 style="margin-bottom: {SPACING["md"]};">📨 Notification preview</h3>', unsafe_allow_html=True)
     

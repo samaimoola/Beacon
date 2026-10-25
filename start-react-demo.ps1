@@ -1,6 +1,6 @@
 # PowerShell script to start both backend and frontend for Windows
 
-Write-Host "🌩️ Starting StormReady React Demo..." -ForegroundColor Cyan
+Write-Host "🌩️ Starting Beacon React Demo..." -ForegroundColor Cyan
 Write-Host ""
 
 # Check Python

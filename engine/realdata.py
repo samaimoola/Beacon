@@ -125,6 +125,51 @@ def _build_repair_jobs(scenario: dict, catalog: dict) -> tuple[list, list[str]]:
 _SEVERITY_MULT = {"low": 0.8, "medium": 1.0, "high": 1.3}
 
 
+def _severity_jobs(scenario: dict, catalog: dict, sev_mult: float) -> list:
+    """Repair jobs for a scenario with severity applied (None stays None / unknown)."""
+    raw_jobs, _notes = _build_repair_jobs(scenario, catalog)
+    return [
+        _sched.RepairJob(
+            task=j.task,
+            direct_hours=(None if j.direct_hours is None else round(j.direct_hours * sev_mult, 3)),
+            depends_on=j.depends_on,
+            hours_source=j.hours_source,
+            is_assumption=j.is_assumption,
+        )
+        for j in raw_jobs
+    ]
+
+
+def schedule_summary(
+    customer_id: str,
+    storm_severity: str,
+    available_crews: int,
+    access_blocked: bool,
+    damage_scenario: Optional[str] = None,
+) -> dict:
+    """
+    Structured scheduling facts for a scenario, computed by the SAME scheduler
+    call evaluate_scenario uses. Lets explainers state *why* a crew change does
+    or does not move the window without parsing factor text. Additive helper:
+    evaluate_scenario's result shape is unchanged.
+    """
+    idx = _index()
+    if customer_id not in idx:
+        raise ValueError(f"Unknown customer_id: {customer_id!r}")
+    scenario = _find_scenario(idx[customer_id], damage_scenario)
+    jobs = _severity_jobs(scenario, _task_catalog(), _SEVERITY_MULT[storm_severity])
+    sched = _sched.schedule(jobs, crews=available_crews, ilm=_ilm(), access_blocked=access_blocked)
+    return {
+        "repair_jobs": len(jobs),
+        "unknown_jobs": sched.unknown_jobs,
+        "crews": available_crews,
+        "elapsed_hours": sched.elapsed_hours,
+        "critical_path_hours": sched.critical_path_hours,
+        "dependency_limited": sched.dependency_limited,
+        "access_delay_hours": sched.access_delay_hours,
+    }
+
+
 def evaluate_scenario(
     customer_id: str,
     storm_severity: str,
@@ -223,19 +268,7 @@ def evaluate_scenario(
     restoration_factors: list[str] = []
 
     sev_mult = _SEVERITY_MULT[storm_severity]
-    raw_jobs, job_notes = _build_repair_jobs(scenario, catalog)
-    # Apply severity to each job's effort (None stays None / unknown).
-    jobs = [
-        _sched.RepairJob(
-            task=j.task,
-            direct_hours=(None if j.direct_hours is None else round(j.direct_hours * sev_mult, 3)),
-            depends_on=j.depends_on,
-            hours_source=j.hours_source,
-            is_assumption=j.is_assumption,
-        )
-        for j in raw_jobs
-    ]
-
+    jobs = _severity_jobs(scenario, catalog, sev_mult)
     sched = _sched.schedule(jobs, crews=available_crews, ilm=ilm, access_blocked=access_blocked)
     low_h: Optional[float] = sched.low_hours
     high_h: Optional[float] = sched.high_hours
@@ -322,7 +355,7 @@ def evaluate_scenario(
         "The model is an UNVALIDATED heuristic.",
         "Labor-hour unit is UNRESOLVED (worker-, crew-, or elapsed-hours) — open question for AEP mentors.",
         "Evidence quality describes how much real data backs the inputs, NOT prediction accuracy.",
-        "\"Alert eligible\" reflects StormReady prototype rules only — not AEP enrollment, program "
+        "\"Alert eligible\" reflects Beacon prototype rules only — not AEP enrollment, program "
         "qualification, or guaranteed restoration priority.",
         f"Topology join verified on premise number; this premise's customer transformer key "
         f"{'agrees with' if p.get('topology_key_agreement') else 'DISAGREES with'} the topology file.",

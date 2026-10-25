@@ -1,7 +1,10 @@
-# StormReady UI Improvements Summary
+# Beacon UI Improvements Summary
+
+> **Scope:** this summary describes the **Streamlit alternative UI** (`app.py`, `ui/`). The
+> primary React interface is documented in `frontend/README.md`.
 
 ## Overview
-Implemented a comprehensive UI polish for the StormReady customer interface, focusing on creating a polished, approachable outage-preparation assistant that residential customers can understand immediately.
+Implemented a comprehensive UI polish for the Beacon customer interface, focusing on creating a polished, approachable outage-preparation assistant that residential customers can understand immediately.
 
 ## Design Goals Achieved
 

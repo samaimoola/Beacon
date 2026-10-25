@@ -258,7 +258,7 @@ def evaluate_scenario(
     # ------------------------------------------------------------------
     # 4. Alert eligibility — PROTOTYPE RULES ONLY
     # ------------------------------------------------------------------
-    # These are StormReady prototype rules for which households the demo would
+    # These are Beacon prototype rules for which households the demo would
     # flag for an outage alert. They do NOT represent actual AEP enrollment,
     # verified program qualification, or any guaranteed restoration priority.
     #   Rule A: household declares medical electricity needs → eligible
@@ -282,7 +282,7 @@ def evaluate_scenario(
         "Crew availability and blocked access affect the restoration-duration estimate only, "
         "not the likelihood of losing power.",
         "Crew routing, mutual-aid agreements, and actual storm track are not modeled.",
-        "\"Alert eligible\" means the household meets StormReady's prototype notification rules — "
+        "\"Alert eligible\" means the household meets Beacon's prototype notification rules — "
         "it does not mean the customer is enrolled in any AEP program, qualifies for one, or has "
         "guaranteed restoration priority.",
         "A household's declared medical electricity needs affect preparation and communication "

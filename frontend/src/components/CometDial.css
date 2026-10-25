@@ -1,8 +1,9 @@
+/* CometDial — restyled for the Storm Observatory (behavior unchanged). */
 .comet-dial {
-  --cd-accent: #BB0000;
-  --cd-ink: #666666;
-  --cd-size: 250px;
-  --cd-figure: 40px;
+  --cd-accent: #8a520c;
+  --cd-ink: #1b2829;
+  --cd-size: 160px;
+  --cd-figure: 30px;
   position: relative;
   width: var(--cd-size);
   height: var(--cd-size);
@@ -11,6 +12,9 @@
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #fffdf8 0%, #f6f1e6 62%, #ece4d2 100%);
+  box-shadow: inset 0 0 0 1px rgba(27, 40, 41, 0.08), 0 14px 28px -18px rgba(8, 25, 29, 0.45);
 }
 
 .comet-dial__ring {
@@ -23,6 +27,10 @@
   outline: none;
   cursor: grab;
   touch-action: none;
+}
+
+.comet-dial__ring:focus-visible {
+  box-shadow: 0 0 0 3px #f6f1e6, 0 0 0 6px #7fc0c7;
 }
 
 .comet-dial[data-dragging] .comet-dial__ring {
@@ -38,20 +46,22 @@
 
 .comet-dial__track {
   stroke: var(--cd-ink);
-  opacity: 0.24;
+  opacity: 0.14;
 }
 
 .comet-dial__lit {
   stroke: var(--cd-accent);
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .comet-dial__comet path {
-  stroke: var(--cd-accent);
+  stroke: #f2b45a;
 }
 
 .comet-dial__head {
-  fill: var(--cd-accent);
+  fill: #f2b45a;
+  stroke: var(--cd-accent);
+  stroke-width: 2;
 }
 
 .comet-dial__readout {
@@ -65,17 +75,22 @@
 .comet-dial__value {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.06em;
+  gap: 0.12em;
+  font-family: var(--font-display), Georgia, serif;
+  font-variation-settings: 'opsz' 24, 'SOFT' 30;
   font-size: var(--cd-figure);
-  font-weight: 500;
+  font-weight: 560;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
 .comet-dial__unit {
-  font-size: 0.5em;
-  opacity: 0.5;
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 0.42em;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.6;
 }
 
 .comet-dial[data-disabled] {

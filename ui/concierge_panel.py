@@ -1,7 +1,7 @@
 """
 ui/concierge_panel.py
 =====================
-"Ask StormReady" chat area.
+"Ask Beacon AI" chat area.
 
 Presentation + interaction only. It calls the concierge ONLY in response to an
 explicit user action (typing a question or clicking a suggested question), never
@@ -132,8 +132,8 @@ def render_concierge(
     prev_result,
     input_changes,
 ) -> None:
-    """Render the Ask StormReady area."""
-    st.markdown(f'<h3 style="margin-bottom: {SPACING["md"]};">💬 Ask StormReady</h3>', unsafe_allow_html=True)
+    """Render the Ask Beacon AI area."""
+    st.markdown(f'<h3 style="margin-bottom: {SPACING["md"]};">💬 Ask Beacon AI</h3>', unsafe_allow_html=True)
     st.markdown(f"""
     <div style="
         color: {GREY_MEDIUM};

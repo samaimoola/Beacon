@@ -168,7 +168,7 @@ def labor_hours_for_chain(chain_items: list[dict], labor: dict) -> dict:
         "labor_unit": "UNRESOLVED",
         "labor_unit_note": (
             "The workbook does not state whether its hours are worker-hours, crew-hours, "
-            "or elapsed hours. StormReady treats them as effort (person-or-crew hours) and "
+            "or elapsed hours. Beacon treats them as effort (person-or-crew hours) and "
             "any conversion to elapsed time elsewhere must expose its assumed interpretation "
             "and the assumed crew size. Open question for AEP mentors."
         ),
@@ -328,7 +328,7 @@ def build_damage_scenarios(premise_chain: list[dict], service_kind: str) -> list
         {
             "id": "unmapped_asset",
             "label": "Unmapped asset (unknown effort)",
-            "description": "Damage to an asset StormReady cannot map to a workbook labor "
+            "description": "Damage to an asset Beacon cannot map to a workbook labor "
                            "reference — the estimate is deliberately UNKNOWN, not invented.",
             "damaged_assets": [{"asset_type": "Unmapped equipment", "quantity": 1}],
             "jobs": [

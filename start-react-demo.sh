@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bash script to start both backend and frontend for macOS/Linux
 
-echo "🌩️ Starting StormReady React Demo..."
+echo "🌩️ Starting Beacon React Demo..."
 echo ""
 
 # Check Python

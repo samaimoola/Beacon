@@ -53,6 +53,11 @@ class ScheduleResult:
     high_hours: Optional[float]
     notes: list[str] = field(default_factory=list)
     unknown_jobs: int = 0
+    # True when the crew-limited schedule already equals the critical path, i.e.
+    # adding crews cannot finish any sooner. None when there is nothing to
+    # schedule (no jobs) or the schedule is unknown.
+    dependency_limited: Optional[bool] = None
+    access_delay_hours: float = 0.0
 
 
 def schedule(jobs: list[RepairJob], crews: int, ilm: float,
@@ -152,6 +157,8 @@ def schedule(jobs: list[RepairJob], crews: int, ilm: float,
     elapsed = round(t, 2)
     # Elapsed can never be below the critical path even with abundant crews.
     elapsed = max(elapsed, critical_path)
+    # At the critical path, no number of extra crews can finish sooner.
+    dependency_limited = elapsed <= critical_path + 1e-9
 
     if access_blocked:
         elapsed = round(elapsed + ACCESS_DELAY_HOURS, 2)
@@ -183,4 +190,6 @@ def schedule(jobs: list[RepairJob], crews: int, ilm: float,
         high_hours=high,
         notes=notes,
         unknown_jobs=0,
+        dependency_limited=dependency_limited,
+        access_delay_hours=ACCESS_DELAY_HOURS if access_blocked else 0.0,
     )

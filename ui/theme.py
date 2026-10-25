@@ -1,7 +1,7 @@
 """
 ui/theme.py
 ============
-StormReady UI design system.
+Beacon UI design system.
 
 Design goal: A polished, approachable outage-preparation assistant that a residential customer 
 can understand immediately.

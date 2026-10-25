@@ -1,143 +1,71 @@
-# StormReady React Frontend
+# Beacon React Frontend
 
-Modern React/Next.js frontend for the StormReady AI Outage Concierge with Ohio State branding.
+Next.js 14 (App Router) + Tailwind UI for Beacon — *When the lights go out, your plan
+doesn't.* It is a single-page "Storm Observatory": an illustrated hero, a scenario
+console, the engine's reading, the Ask Beacon AI concierge, and notice previews.
 
-## Features
+All numbers come from the Python engine through `api_server.py`. The browser never
+computes estimates and never touches AWS credentials.
 
-- **CometDial Component**: Beautiful circular sliders for crew availability
-- **Ohio State Colors**: Scarlet (#BB0000), Grey, and White color scheme
-- **Real-time Updates**: Connects to Python FastAPI backend
-- **Responsive Design**: Works on desktop and mobile
-- **Accessible**: WCAG compliant with keyboard navigation
-
-## Prerequisites
-
-- Node.js 18+ and npm/yarn
-- Python backend running on port 8000
-
-## Installation
+## Run
 
 ```bash
+# 1. Python API (from the repository root)
+source .venv/bin/activate
+python api_server.py                 # http://localhost:8000
+
+# 2. Frontend
 cd frontend
-npm install
-# or
-yarn install
+npm install                          # first time only
+npm run dev                          # http://localhost:3000
 ```
 
-## Development
+`next.config.js` proxies `/api/*` to `http://localhost:8000`, so the browser uses
+same-origin requests. Set `NEXT_PUBLIC_API_URL` only if the API lives elsewhere.
 
-1. **Start the Python backend** (from project root):
-   ```bash
-   pip install -r requirements.txt
-   python api_server.py
-   ```
+If the API is unreachable, the app shows "Engine disconnected" and **no estimates** —
+there is no offline demo data. Retry makes a real request and clears the warning only
+after the engine answers.
 
-2. **Start the React frontend**:
-   ```bash
-   npm run dev
-   ```
+## What's on the page
 
-3. Open [http://localhost:3000](http://localhost:3000)
+| Section | Component | Notes |
+| --- | --- | --- |
+| Nav + hero | `Nav.tsx`, `Hero.tsx`, `scene/StormScene.tsx` | Illustration reacts to severity, access, and crew count (decorative). |
+| 01 · Scenario console | `Console.tsx`, `CometDial.tsx` | Household, simulated storm severity, damage preset, crews (1–10), access, optional declared needs, reset. |
+| 02 · Reading | `Reading.tsx` | Restoration range, risk band, evidence quality, prototype alert rule, drivers, "What changed", checklist, provenance. |
+| 03 · Ask Beacon AI | `Concierge.tsx` | Server-side concierge; each answer is labeled live Bedrock or rule-based fallback, as returned by the server. |
+| 04 · Notice previews | `Notices.tsx` | Simulated lifecycle notices; eligibility, consent, channel, and (for estimate updates) material change shown separately. Nothing is sent. |
 
-## Build for Production
+State lives in `hooks/useStormReady.ts` (sequence/abort guards, cached reading, retry,
+reset). Pure helpers are in `lib/scenario.ts`; the typed client is `lib/api.ts`.
+
+### Declared needs
+
+Two optional checkboxes — "I rely on electricity-dependent medical equipment." and "I may
+need accessibility assistance during an outage." Both start unchecked, are never inferred,
+and live only in React state (no storage, no logging); Reset clears them. They are sent as
+two booleans and tailor the checklist, concierge answers, and notice wording. Risk,
+restoration, crews, and alert eligibility do not change, and nothing implies AEP program
+eligibility or restoration priority.
+
+## Checks
 
 ```bash
-npm run build
-npm start
+npx tsc --noEmit          # type check
+npm run build             # production build (stop `npm run dev` first; it shares .next/)
+npm run test:e2e          # browser regression checks (needs the API and the app running)
 ```
 
-## Project Structure
-
-```
-frontend/
-├── src/
-│   ├── app/              # Next.js App Router pages
-│   │   ├── layout.tsx    # Root layout
-│   │   ├── page.tsx      # Main page
-│   │   └── globals.css   # Global styles
-│   ├── components/       # React components
-│   │   ├── CometDial.tsx # Circular dial component
-│   │   └── CometDial.css # Dial styles
-│   └── lib/              # Utilities
-│       └── api.ts        # API client
-├── package.json
-├── tsconfig.json
-├── tailwind.config.js
-└── next.config.js
-```
-
-## API Configuration
-
-The frontend expects the backend API at `http://localhost:8000` by default.
-
-To change this, set the environment variable:
-
-```bash
-NEXT_PUBLIC_API_URL=http://your-api-url:port npm run dev
-```
-
-## Ohio State Branding
-
-Colors are defined in `tailwind.config.js`:
-- **Scarlet**: #BB0000 (primary)
-- **Grey**: #666666 (secondary)
-- **Light**: #F5F5F5 (background)
-- **Dark**: #2C2C2C (text)
-
-## Components
-
-### CometDial
-
-Circular dial component from React Bits with Ohio State styling:
-
-```tsx
-<CometDial
-  value={4}
-  min={1}
-  max={10}
-  step={1}
-  unit=" crews"
-  label="Available Crews"
-  accent="#BB0000"
-  ink="#666666"
-  size={200}
-  onChange={(value) => console.log(value)}
-/>
-```
-
-## Deployment
-
-### Vercel (Recommended)
-
-```bash
-npm run build
-vercel deploy
-```
-
-### Docker
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
-```
+`npm run test:e2e` drives headless Chrome over the DevTools protocol with no extra
+packages. It simulates backend outages and errors with request interception and mocks
+the concierge endpoint, so it never calls Bedrock. It covers retry recovery, stale-reading
+gating of the concierge, preset reload, declared needs and reset, and the estimate-update
+delivery decision. Set `CHROME_PATH` if Chrome isn't auto-detected; Node 20 needs the
+`--experimental-websocket` flag, which the npm script passes.
 
 ## Troubleshooting
 
-**Backend Connection Issues**:
-- Ensure Python API is running: `python api_server.py`
-- Check CORS settings in `api_server.py`
-- Verify API URL in frontend
-
-**Build Errors**:
-- Clear `.next` folder: `rm -rf .next`
-- Reinstall dependencies: `rm -rf node_modules && npm install`
-
-## License
-
-Built for AEP HackOHIO 2026
+- **"Engine disconnected"**: start `python api_server.py` and check `curl localhost:8000/health`.
+- **500 with MODULE_NOT_FOUND after a build**: `npm run build` and `npm run dev` share `.next/`.
+  Stop the dev server, `rm -rf .next`, and start it again.
