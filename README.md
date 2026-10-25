@@ -3,11 +3,6 @@
 
 HackOHI/O 2026 — AEP AI Outage Concierge
 
-> **Naming note.** This project was formerly called Beacon. The product name is
-> now **Beacon**. The repository, local folder, `Beacon_*` environment variables,
-> API routes, and internal module names are intentionally unchanged so existing
-> setups keep working.
-
 A prototype that lets a residential customer select an anonymized household and see an
 outage-risk band, a restoration-time estimate, preparation guidance, alert eligibility,
 and a notification preview — with controls judges can change to see results update.
